@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CryptoWar</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 15px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #fff; }
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px;
+}
+
+.logo {
+  flex-shrink: 0;
+  padding: 8px 0 20px 0;
+}
+.logo pre {
+  font-size: 12px;
+  line-height: 1.15;
+  margin: 0;
+  white-space: pre;
+}
+.logo pre:first-child {
+  margin-bottom: 24px;
+}
+.logo .right-pre {
+  text-align: right;
+}
+
+.sep {
+  border: none;
+  border-top: 1px solid #fff;
+  margin: 0 0 16px 0;
+  flex-shrink: 0;
+}
+
+.list {
+  flex: 1;
+  overflow-y: auto;
+}
+.lh { font-size: 12px; opacity: 0.4; letter-spacing: 2px; padding: 0 0 8px 0; }
+.item {
+  display: flex; align-items: center; gap: 16px; padding: 10px 0;
+  cursor: pointer; text-decoration: none; color: #fff;
+  transition: opacity 0.15s; border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+.item:hover { opacity: 0.6; }
+.num { font-size: 12px; opacity: 0.3; min-width: 42px; letter-spacing: 1px; }
+.body { flex: 1; }
+.title { font-size: 15px; font-weight: 600; }
+.desc { font-size: 12px; opacity: 0.35; margin-top: 1px; }
+.right { display: flex; align-items: center; gap: 10px; }
+.done { font-size: 12px; display: none; }
+.done.v { display: inline; }
+.tag { font-size: 11px; padding: 2px 8px; border: 1px solid #fff; opacity: 0.35; letter-spacing: 1px; }
+.status { padding: 8px 0 0 0; font-size: 12px; display: flex; justify-content: space-between; flex-shrink: 0; opacity: 0.3; }
+</style>
+</head>
+<body>
+
+<div class="main">
+
+<div class="logo">
+<pre>███████╗░░██╗░░░██╗░░██████╗░░██████╗░░░██╗░░░██╗░██████╗░░░████████╗░███████╗░░██████╗░░░
+██╔════╝░░████╗░░██║██╔════╝░░██╔══██╗░░╚██╗░██╔╝░██╔══██╗░░░░░██║░░░░██╔════╝░░██╔══██╗░░
+█████╗░░░░██╔██╗░██║██║░░░░░░░██████╔╝░░░╚████╔╝░░██████╔╝░░░░░██║░░░░█████╗░░░░██║░░██║░░
+██╔══╝░░░░██║╚██╗██║██║░░░░░░░██╔══██╗░░░░╚██╔╝░░░██╔══╝░░░░░░░██║░░░░██╔══╝░░░░██║░░██║░░
+███████╗░░██║░╚████║╚██████╗░░██║░░██║░░░░░██║░░░░██║░░░░░░░░░░██║░░░░███████╗░░██████╔╝░░
+╚══════╝░░╚═╝░░╚═══╝░╚═════╝░░╚═╝░░╚═╝░░░░░╚═╝░░░░╚═╝░░░░░░░░░░╚═╝░░░░╚══════╝░░╚═════╝░░░</pre>
+<pre style="text-align:right">░██████╗░░░██████╗░░██╗░░░██╗░██╗░░░██╗░███████╗░░██████╗░░░░██████╗░░░██████╗░░████████╗░████████╗░░██████╗░░██╗░░░██╗░
+██╔════╝░░██╔════██╗████╗░░██║██║░░░██║░██╔════╝░░██╔══██╗░░██╔════╝░░██╔════██╗░░░██║░░░░░░░██║░░░░██╔════██╗████╗░░██║
+██║░░░░░░░██║░░░░██║██╔██╗░██║╚██╗░██╔╝░█████╗░░░░██████╔╝░░╚█████╗░░░█████████║░░░██║░░░░░░░██║░░░░██║░░░░██║██╔██╗░██║
+██║░░░░░░░██║░░░░██║██║╚██╗██║░╚████╔╝░░██╔══╝░░░░██╔══██╗░░░╚═══██╗░░██╔════██║░░░██║░░░░░░░██║░░░░██║░░░░██║██║╚██╗██║
+╚██████╗░░╚██████╔╝░██║░╚████║░░╚██╔╝░░░███████╗░░██║░░██║░░██████╔╝░░██║░░░░██║░░░██║░░░░░░░██║░░░░╚██████╔╝░██║░╚████║
+░╚═════╝░░░╚═════╝░░╚═╝░░╚═══╝░░░╚═╝░░░░╚══════╝░░╚═╝░░╚═╝░░╚═════╝░░░╚═╝░░░░╚═╝░░░╚═╝░░░░████████╗░░╚═════╝░░╚═╝░░╚═══╝</pre>
+</div>
+
+<hr class="sep">
+
+<div class="list">
+  <div class="lh">-- AVAILABLE CIPHERS --</div>
+
+  <a class="item" id="item-caesar" href="ciphers/caesar/index.html">
+    <span class="num">#001</span>
+    <div class="body">
+      <div class="title">CAESAR CIPHER</div>
+      <div class="desc">shift substitution / oldest known cipher</div>
+    </div>
+    <div class="right">
+      <span class="done" id="done-caesar">DONE</span>
+      <span class="tag">UNLOCKED</span>
+    </div>
+  </a>
+
+</div>
+
+<div class="status">
+  <span>[TOTAL: 1]</span>
+  <span id="status-completed">[COMPLETED: 0]</span>
+</div>
+
+</div>
+
+<script>
+if (localStorage.getItem('cw_caesar_done') === '1') {
+  document.getElementById('done-caesar').classList.add('v');
+  document.getElementById('status-completed').textContent = '[COMPLETED: 1]';
+}
+</script>
+</body>
+</html>
