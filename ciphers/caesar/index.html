@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Caesar Cipher — CryptoWar</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Courier New', 'Consolas', monospace;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  min-height: 100vh;
+}
+::-webkit-scrollbar { width: 3px; }
+::-webkit-scrollbar-track { background: #000; }
+::-webkit-scrollbar-thumb { background: #fff; }
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 16px;
+}
+
+.logo { flex-shrink: 0; padding: 0 0 14px 0; }
+.logo pre { font-size: 12px; line-height: 1.15; margin: 0; white-space: pre; }
+
+.alpha-wrap {
+  flex-shrink: 0;
+  overflow-x: auto;
+  padding: 10px 0;
+  border-top: 1px solid #fff;
+  border-bottom: 1px solid #fff;
+  margin-bottom: 10px;
+}
+.alpha-table { font-size: 13px; line-height: 1.6; letter-spacing: 2px; white-space: nowrap; }
+.alpha-table .rl { opacity: 0.3; display: inline-block; width: 22px; letter-spacing: 0; }
+.alpha-table .pl { opacity: 0.25; }
+.alpha-table .sh { opacity: 1; }
+.alpha-table .ac { background: #fff; color: #000; padding: 0 2px; }
+
+.tool { flex-shrink: 0; padding: 4px 0; }
+.tl { display: flex; align-items: stretch; margin: 2px 0; min-height: 26px; }
+.tp { font-size: 13px; font-weight: 700; flex-shrink: 0; padding-right: 8px; display: flex; align-items: center; }
+.ti { flex: 1; background: transparent; border: none; color: #fff; font-family: 'Courier New', 'Consolas', monospace; font-size: 15px; padding: 2px 0; outline: none; letter-spacing: 3px; }
+.ti::placeholder { color: rgba(255,255,255,0.12); letter-spacing: 1px; font-size: 13px; }
+.to { flex: 1; font-size: 15px; font-weight: 700; letter-spacing: 3px; padding: 2px 0; min-height: 22px; word-break: break-all; }
+.to.e { font-weight: 400; font-size: 13px; letter-spacing: 1px; opacity: 0.25; }
+
+.split { flex: 1; display: flex; min-height: 0; gap: 0; padding-top: 6px; }
+.left { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #fff; min-width: 0; padding-right: 12px; }
+.lb { flex: 1; overflow-y: auto; min-height: 0; }
+.sh { font-size: 11px; opacity: 0.3; letter-spacing: 1px; margin: 6px 0 0 0; flex-shrink: 0; }
+.sh .sv { opacity: 0.8; font-weight: 700; }
+
+/* ── chat: terminal style ── */
+.right { width: 300px; flex-shrink: 0; display: flex; flex-direction: column; padding-left: 12px; }
+.ch { flex-shrink: 0; font-size: 11px; display: flex; justify-content: space-between; border-bottom: 1px solid #fff; padding: 0 0 2px 0; margin-bottom: 6px; }
+.ch .nm { font-weight: 600; opacity: 0.5; }
+.ch .st { opacity: 0.25; letter-spacing: 1px; }
+
+.cm { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 3px; min-height: 0; margin-bottom: 6px; }
+.msg { font-size: 13px; line-height: 1.5; word-break: break-word; animation: mi 0.15s ease; }
+@keyframes mi { from { opacity: 0; } to { opacity: 1; } }
+.msg-x { text-align: center; font-size: 12px; opacity: 0.4; }
+
+.mcp { cursor: pointer; border-bottom: 1px dotted rgba(255,255,255,0.2); color: #fff; }
+.mcp:hover { border-color: #fff; }
+.chp { cursor: pointer; font-size: 10px; opacity: 0.3; border-bottom: 1px dotted rgba(255,255,255,0.15); display: inline-block; }
+.chp:hover { opacity: 1; }
+.mt { font-size: 10px; opacity: 0.2; }
+
+.typing { display: none; font-size: 12px; opacity: 0.25; flex-shrink: 0; margin: 0 0 2px 0; }
+.typing.s { display: block; }
+
+.ci { display: flex; gap: 0; flex-shrink: 0; border-top: 1px solid #fff; padding-top: 4px; }
+.ci .cp { font-size: 13px; font-weight: 700; padding-right: 6px; display: flex; align-items: center; }
+.ci input { flex: 1; background: #000; border: none; color: #fff; padding: 3px 0; font-size: 13px; font-family: 'Courier New', 'Consolas', monospace; outline: none; }
+.ci input:disabled { opacity: 0.12; }
+.ci input::placeholder { color: rgba(255,255,255,0.12); }
+
+.drag-wrap { margin-top: 6px; flex-shrink: 0; overflow: hidden; cursor: grab; }
+.drag-label { font-size: 10px; opacity: 0.25; letter-spacing: 1px; margin-bottom: 2px; }
+.drag-row { display: flex; gap: 0; width: max-content; will-change: transform; }
+.drag-char { flex: 0 0 28px; width: 28px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; user-select: none; color: rgba(255,255,255,0.2); }
+.drag-char.a { background: #fff; color: #000; }
+
+.overlay { display: none; position: fixed; inset: 0; background: #000; flex-direction: column; align-items: center; justify-content: center; gap: 14px; text-align: center; z-index: 100; animation: fi 0.5s ease; }
+@keyframes fi { from { opacity: 0; } to { opacity: 1; } }
+.overlay.s { display: flex; }
+.overlay pre { font-size: 12px; line-height: 1.2; white-space: pre; margin-bottom: 8px; }
+.overlay .t { font-size: 20px; letter-spacing: 6px; font-weight: 700; }
+.overlay .k { font-size: 24px; font-weight: 700; letter-spacing: 8px; padding: 8px 24px; border: 1px solid #fff; }
+.overlay .su { font-size: 13px; opacity: 0.4; }
+.btn { margin-top: 8px; padding: 8px 24px; color: #fff; border: 1px solid #fff; font-family: 'Courier New', 'Consolas', monospace; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block; }
+.btn:hover { background: #fff; color: #000; }
+</style>
+</head>
+<body>
+
+<div class="main">
+
+  <div class="logo">
+<pre>░██████╗░░░██████╗░░███████╗░░░██████╗░░░██████╗░░██████╗░░░      ░██████╗░░████████╗░██████╗░░░██╗░░░██╗░███████╗░░██████╗░░░
+██╔════╝░░██╔════██╗██╔════╝░░██╔════╝░░██╔════██╗██╔══██╗░░      ██╔════╝░░░░░██║░░░░██╔══██╗░░██║░░░██║░██╔════╝░░██╔══██╗░░
+██║░░░░░░░█████████║█████╗░░░░╚█████╗░░░█████████║██████╔╝░░      ██║░░░░░░░░░░██║░░░░██████╔╝░░████████║░█████╗░░░░██████╔╝░░
+██║░░░░░░░██╔════██║██╔══╝░░░░░╚═══██╗░░██╔════██║██╔══██╗░░      ██║░░░░░░░░░░██║░░░░██╔══╝░░░░██╔════██║██╔══╝░░░░██╔══██╗░░
+╚██████╗░░██║░░░░██║███████╗░░██████╔╝░░██║░░░░██║██║░░██║░░      ╚██████╗░░░░░██║░░░░██║░░░░░░░██║░░░░██║███████╗░░██║░░██║░░
+░╚═════╝░░╚═╝░░░░╚═╝╚══════╝░░╚═════╝░░░╚═╝░░░░╚═╝╚═╝░░╚═╝░░      ░╚═════╝░░████████╗░╚═╝░░░░░░░╚═╝░░░░╚═╝╚══════╝░░╚═╝░░╚═╝░░</pre>
+  </div>
+
+  <div class="split">
+
+    <div class="left">
+      <div class="lb">
+
+        <div class="alpha-wrap">
+          <div class="alpha-table" id="alpha-table"></div>
+        </div>
+
+        <div class="tool">
+          <div class="tl">
+            <span class="tp">$&gt;</span>
+            <input class="ti" id="ct-input" placeholder="ciphertext" spellcheck="false" />
+          </div>
+          <div class="tl">
+            <span class="tp">&gt;</span>
+            <div class="to e" id="output-text">waiting for input</div>
+          </div>
+        </div>
+
+        <div class="sh">[ SHIFT: <span class="sv" id="shift-val">0</span> ]  ·  drag KEY row to adjust</div>
+
+        <div class="drag-wrap" id="drag-area">
+          <div class="drag-label">KEY</div>
+          <div class="drag-row" id="row-drag"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="ch"><span class="nm">[session]</span><span class="st">online</span></div>
+      <div class="cm" id="chat-msgs"></div>
+      <div class="typing" id="typing-indicator">receiving transmission ...</div>
+      <div class="ci">
+        <span class="cp">$</span>
+        <input type="text" id="chat-input" placeholder="key word" disabled />
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="overlay" id="complete-overlay">
+  <pre>  ███╗░░░███╗██╗░░░░░██████╗░░░██████╗░░██╗░░░░░██████╗░░████████╗░███████╗░░
+  ████╗░████║██║░░░░░██╔════╝░░██╔══██╗░██║░░░░░██╔══██╗░░░░░░██║░░░██╔════╝░░
+  ██╔████╔██║██║░░░░░╚█████╗░░░██████╔╝░██║░░░░░██████╔╝░░░░░░██║░░░█████╗░░░░
+  ██║╚██╔╝██║██║░░░░░░╚═══██╗░░██╔══██╗░██║░░░░░██╔══██╗░░░░░░██║░░░██╔══╝░░░░
+  ██║░╚═╝░██║███████╗░██████╔╝░░██║░░██║░███████╗██║░░██║░░░░░░██║░░░███████╗░░
+  ╚═╝░░░░░╚═╝╚══════╝░╚═════╝░░░╚═╝░░╚═╝░╚══════╝╚═╝░░╚═╝░░░░░░╚═╝░░░╚══════╝░░</pre>
+  <div class="t">MISSION COMPLETE</div>
+  <div class="k" id="complete-key">NIGHTFALL</div>
+  <div class="su">decryption successful / access granted</div>
+  <a class="btn" href="../../index.html">RETURN TO BASE</a>
+</div>
+
+<script>
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const LOWER  = 'abcdefghijklmnopqrstuvwxyz';
+const N = 26;
+const CHALLENGE = {
+  secretKey: 'NIGHTFALL',
+  cipherText: 'GUR CNFFJBEQ VF AVTUGSNYY',
+  shift: 13
+};
+const CHAT_SCRIPT = [
+  'incoming transmission ... intercepted a caesar cipher.',
+  'shift unknown. decrypt and find the key word.',
+  null,
+  'find the key word. lives depend on it.'
+];
+CHAT_SCRIPT[2] = { text: 'ciphertext:', cipher: 'GUR CNFFJBEQ VF AVTUGSNYY' };
+
+function decode(text, shift) {
+  return text.split('').map(ch => {
+    if (ch >= 'A' && ch <= 'Z')
+      return LETTERS[(ch.charCodeAt(0) - 65 + (26 - shift)) % 26];
+    return ch;
+  }).join('');
+}
+
+const $ = id => document.getElementById(id);
+const cti = $('ct-input'), rd = $('row-drag'), sv = $('shift-val');
+const ot = $('output-text'), cm = $('chat-msgs'), ci = $('chat-input');
+const co = $('complete-overlay'), ck = $('complete-key');
+const at = $('alpha-table');
+
+let shift = 0, dragging = false, dsx = 0, dss = 0, dlx = 0, dv = 0, ifr = null, cs = false;
+const CW = 28;
+
+function renderAlpha() {
+  let html = '';
+  html += '<span class="rl">a</span>';
+  for (let i = 0; i < N; i++) {
+    html += '<span class="' + (i === 0 ? 'ac' : 'pl') + '">' + LOWER[i] + '</span>';
+  }
+  html += '
+';
+  html += '<span class="rl">A</span>';
+  for (let i = 0; i < N; i++) {
+    const idx = (i + shift) % N;
+    html += '<span class="' + (idx === 0 ? 'ac' : 'sh') + '">' + LETTERS[idx] + '</span>';
+  }
+  at.innerHTML = html;
+}
+
+function renderDrag(s) {
+  rd.innerHTML = '';
+  for (let i = 0; i < N; i++) {
+    const idx = (i + s) % N;
+    const c = document.createElement('div');
+    c.className = 'drag-char' + (idx === 0 ? ' a' : '');
+    c.textContent = LETTERS[idx];
+    rd.appendChild(c);
+  }
+  sv.textContent = s;
+  renderAlpha();
+}
+
+function updateDrag(s) {
+  const cells = rd.children;
+  for (let i = 0; i < N; i++) {
+    const idx = (i + s) % N;
+    cells[i].textContent = LETTERS[idx];
+    cells[i].className = 'drag-char' + (idx === 0 ? ' a' : '');
+  }
+  sv.textContent = s;
+  renderAlpha();
+}
+
+function ap(s) {
+  const c = ((Math.round(s) % N) + N) % N;
+  if (c !== shift) { shift = c; updateDrag(shift); uo(); }
+}
+
+const da = $('drag-area');
+function dgs(cx) {
+  if (ifr) { cancelAnimationFrame(ifr); ifr = null; }
+  dragging = true; dsx = cx; dlx = cx; dss = shift; dv = 0;
+}
+function dgm(cx) {
+  if (!dragging) return;
+  dv = cx - dlx; dlx = cx;
+  ap(dss - (cx - dsx) / CW);
+}
+function dge() {
+  if (!dragging) return;
+  dragging = false;
+  if (Math.abs(dv) > 1.5) {
+    let decel = 0;
+    (function step() {
+      decel += 0.7;
+      const r = dv - decel * Math.sign(dv);
+      if (Math.abs(r) < 0.5 || Math.abs(decel * CW) > Math.abs(dv) * 2) { ap(shift); return; }
+      ap(shift - r / CW * 0.6);
+      ifr = requestAnimationFrame(step);
+    })();
+  }
+}
+da.addEventListener('mousedown', e => { e.preventDefault(); dgs(e.clientX); });
+window.addEventListener('mousemove', e => dgm(e.clientX));
+window.addEventListener('mouseup', dge);
+da.addEventListener('touchstart', e => { dgs(e.touches[0].clientX); }, { passive: true });
+window.addEventListener('touchmove', e => { dgm(e.touches[0].clientX); }, { passive: true });
+window.addEventListener('touchend', dge);
+
+function uo() {
+  const t = cti.value.toUpperCase().replace(/[^A-Zs]/g, '');
+  if (!t) { ot.textContent = 'waiting for input'; ot.className = 'to e'; return; }
+  ot.textContent = decode(t, shift);
+  ot.className = 'to';
+}
+cti.addEventListener('input', uo);
+
+function ts() {
+  const d = new Date();
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+function addMsg(type, content) {
+  const div = document.createElement('div');
+  div.className = 'msg msg-' + type;
+  let text = '';
+  if (type === 'r' && content && content.cipher) {
+    text = content.text + ' <span class="mcp" onclick="fillCt()">' + content.cipher + '</span> <span class="chp" onclick="fillCt()">[load]</span> <span class="mt">' + ts() + '</span>';
+  } else if (type === 'r') {
+    const txt = typeof content === 'string' ? content : content.text;
+    text = txt + ' <span class="mt">' + ts() + '</span>';
+  } else if (type === 's') {
+    text = content + ' <span class="mt">' + ts() + '</span>';
+  } else if (type === 'x') {
+    text = content;
+  }
+  div.innerHTML = text;
+  cm.appendChild(div);
+  cm.scrollTop = cm.scrollHeight;
+}
+
+function fillCt() {
+  cti.value = CHALLENGE.cipherText;
+  uo(); cti.focus();
+}
+
+function startChat() {
+  if (cs) return; cs = true;
+  let delay = 0;
+  CHAT_SCRIPT.forEach((msg, i) => {
+    delay += 700 + i * 350;
+    setTimeout(() => {
+      if (typeof msg === 'string') addMsg('r', msg);
+      else addMsg('r', msg);
+      if (i === CHAT_SCRIPT.length - 1) {
+        setTimeout(() => {
+          ci.disabled = false;
+          ci.placeholder = 'key word';
+          ci.focus();
+        }, 600);
+      }
+    }, delay);
+  });
+}
+
+function sendMsg() {
+  const t = ci.value.trim();
+  if (!t || ci.disabled) return;
+  addMsg('s', t);
+  ci.value = '';
+  setTimeout(() => {
+    if (t.toUpperCase() === CHALLENGE.secretKey) {
+      addMsg('x', 'ACCESS GRANTED. MISSION COMPLETE.');
+      ci.disabled = true;
+      ck.textContent = CHALLENGE.secretKey;
+      setTimeout(() => {
+        co.classList.add('s');
+        localStorage.setItem('cw_caesar_done', '1');
+        const de = document.getElementById('done-caesar');
+        if (de) de.classList.add('v');
+      }, 1200);
+    } else {
+      const u = t.toUpperCase();
+      if (u === 'NIGHT' || u === 'FALL') {
+        addMsg('r', 'close ... try the full compound word.');
+      } else {
+        addMsg('r', 'wrong key. try again.');
+      }
+      ci.disabled = false;
+      setTimeout(() => ci.focus(), 50);
+    }
+  }, 600);
+}
+
+ci.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+
+renderAlpha(); renderDrag(0);
+setTimeout(startChat, 500);
+</script>
+</body>
+</html>
